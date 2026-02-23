@@ -50,12 +50,12 @@ public class DishServiceImpl implements DishService {
         //向菜品表插入1条数据
         dishMapper.insert(dish);
         //获取insert语句生成的主键值
-        Long disId=dish.getId();
+        Long dishId=dish.getId();
         //向口味表插入n条数据
         List<DishFlavor> flavors = dishDTO.getFlavors();
-        if(flavors!=null||flavors.size()>0){
+        if(flavors!=null&&flavors.size()>0){
             flavors.forEach(dishFlavor -> {
-                dishFlavor.setDishId(disId);
+                dishFlavor.setDishId(dishId);
             });
             dishFlavorMapper.insertBatch(flavors);
         }
@@ -132,7 +132,7 @@ public class DishServiceImpl implements DishService {
         //插入新口味数据
         List<DishFlavor> flavors = dishDTO.getFlavors();
 
-        if(flavors!=null||flavors.size()>0){
+        if(flavors!=null&&flavors.size()>0){
             flavors.forEach(dishFlavor -> {
                 dishFlavor.setDishId(dishDTO.getId());
             });
@@ -187,4 +187,29 @@ public class DishServiceImpl implements DishService {
                 .build();
         return dishMapper.list(dish);
     }
+
+    /**
+     * 条件查询菜品和口味
+     * @param dish
+     * @return
+     */
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<Dish> dishList = dishMapper.list(dish);
+
+        List<DishVO> dishVOList = new ArrayList<>();
+
+        for (Dish d : dishList) {
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d,dishVO);
+
+            //根据菜品id查询对应的口味
+            List<DishFlavor> flavors = dishFlavorMapper.getByDishId(d.getId());
+
+            dishVO.setFlavors(flavors);
+            dishVOList.add(dishVO);
+        }
+
+        return dishVOList;
+    }
+
 }
